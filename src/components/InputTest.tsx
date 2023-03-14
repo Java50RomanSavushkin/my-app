@@ -9,7 +9,6 @@ export const InputTest: React.FC = () => {
         } else {
             setInputValue(value);
         }
-
         return res;
     }
     return <div>
