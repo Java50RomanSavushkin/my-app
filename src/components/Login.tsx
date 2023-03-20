@@ -7,7 +7,7 @@ export const Login: React.FC = () => {
     return <div>
         <Input submitFn={function (value: string): string {
             dispatch(authActions.login(value));
-            return '';
-        } } placeHolder={"username"} buttonName="Sign in"/>
+            return "joppa";
+        }} placeHolder={"username"} buttonName="Sign in" />
     </div>
 }
