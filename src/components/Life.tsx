@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from "react"
-import LifeMatrix from "../service/lifeMatrix"
+import LifeMatrix from "../service/LifeMatrix"
 import { getRandomMatrix } from "../util/random"
 import { Matrix } from "./Matrix"
-import { dimensions, tickInterval } from '../config/lifeGameConfig.json'
+import lifeGameConfig from '../config/lifeGameConfig.json'
 
 export const Life: React.FC = () => {
     const [numbers, setNumbers] = useState<number[][]>([])
+    const {dimensions, tickInterval} = lifeGameConfig;
     const lifeMatrix = useRef<LifeMatrix>();
     function tick() {
         if (lifeMatrix.current == null) {
-            lifeMatrix.current = new LifeMatrix(getRandomMatrix(dimensions,
-                dimensions, 0, 1))
+            lifeMatrix.current = new LifeMatrix(getRandomMatrix(dimensions, 
+                dimensions, 0, 1));
         }
         setNumbers(lifeMatrix.current.nextStep())
     }
@@ -19,6 +20,6 @@ export const Life: React.FC = () => {
         return () => clearInterval(interval);
     }, [tickInterval, dimensions])
     return <div>
-        <Matrix matrix={numbers} />
+        <Matrix matrix={numbers}/>
     </div>
 }
