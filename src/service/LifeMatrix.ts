@@ -1,39 +1,62 @@
-import { getRandomMatrix } from "../util/random";
+
+// Данный код содержит реализацию игры "Жизнь" (LifeMatrix) на языке TypeScript. 
+// В конструкторе принимается двумерный массив чисел, который инициализирует поле игры. 
+// Метод nextStep() вычисляет новое состояние игрового поля на основе текущего, 
+// и возвращает двумерный массив чисел, представляющий новое состояние поля.
+// Метод getNewRow() вычисляет новое состояние строки игрового поля. 
+// Метод getNewCell() вычисляет новое состояние отдельной клетки, 
+// используя метод getMatrixPart(), который возвращает матрицу, состоящую из 8 клеток вокруг данной. 
+// Методы isLiveFromLive() и isLiveFromDead() вычисляют, будет ли клетка живой или мертвой в следующем поколении, 
+// в зависимости от суммы живых соседей.Используются типы данных TypeScript, 
+// такие как number и типизированные массивы. Также используются выражения с оператором "?:", 
+// которые позволяют удобно писать условные операции.
 
 export default class LifeMatrix {
-    constructor(private _numbers: number[][]){}
+    constructor(private _numbers: number[][]) {  }
     get numbers() {
         return this._numbers;
     }
     nextStep(): number[][] {
-        
         this._numbers = this._numbers.map((__, i) => this.getNewRow(i));
         return this._numbers;
     }
+
     getNewRow(i: number): number[] {
         return this._numbers[i].map((__, j) => this.getNewCell(i, j));
     }
-    
+
     getNewCell(i: number, j: number): number {
         const matrixPart: number[][] = this.getMatrixPart(i, j);
-        const sumCells = matrixPart.reduce((res, row) => res + 
-        row.reduce((rSum, cell) => rSum + cell), 0);
+        const sumCells = matrixPart.reduce((res, row) => res +
+            row.reduce((rSum, cell) => rSum + cell), 0);
         return this._numbers[i][j] ? isLiveFromLive(sumCells) : isLiveFromDead(sumCells);
     }
+
+    //    j-1  j  j+1
+    // i-1 a   b   c
+    //  i  d   e   f
+    // i+1 g   h   i
+    
+    // matrixPart = [      
+    //                 [a, b, c],
+    //                 [d, e, f],
+    //                 [g, h, i]
+    //              ]
+
     getMatrixPart(i: number, j: number): number[][] {
-        const sliceIndex1 = j == 0 ? j : j - 1;
-        const sliceIndex2 = j == this._numbers[0].length - 1 ? j + 1 : j + 2;
+        const sliceIndex1 = j === 0 ? j : j - 1;
+        const sliceIndex2 = j === this._numbers[0].length - 1 ? j + 1 : j + 2;
         const savedNum = this._numbers[i][j];
         this._numbers[i][j] = 0;
-        const res = [i - 1, i, i + 1].map(rowIndex => this._numbers[rowIndex] ? 
+        const res = [i - 1, i, i + 1].map(rowIndex => this._numbers[rowIndex] ?
             this._numbers[rowIndex].slice(sliceIndex1, sliceIndex2) : [0]);
-       this._numbers[i][j] = savedNum;
+        this._numbers[i][j] = savedNum;
         return res;
     }
 }
 function isLiveFromLive(sumCells: number): number {
-    return +(sumCells == 2 || sumCells == 3);
+    return +(sumCells === 2 || sumCells === 3);
 }
 function isLiveFromDead(sumCells: number): number {
-    return +(sumCells == 3);
+    return +(sumCells === 3);
 }

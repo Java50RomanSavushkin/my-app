@@ -6,11 +6,11 @@ import lifeGameConfig from '../config/lifeGameConfig.json'
 
 export const Life: React.FC = () => {
     const [numbers, setNumbers] = useState<number[][]>([])
-    const {dimensions, tickInterval} = lifeGameConfig;
+    const { dimensions, tickInterval } = lifeGameConfig;
     const lifeMatrix = useRef<LifeMatrix>();
     function tick() {
-        if (lifeMatrix.current == null) {
-            lifeMatrix.current = new LifeMatrix(getRandomMatrix(dimensions, 
+        if (lifeMatrix.current === undefined) {
+            lifeMatrix.current = new LifeMatrix(getRandomMatrix(dimensions,
                 dimensions, 0, 1));
         }
         setNumbers(lifeMatrix.current.nextStep())
@@ -18,8 +18,8 @@ export const Life: React.FC = () => {
     useEffect(() => {
         const interval = setInterval(tick, tickInterval);
         return () => clearInterval(interval);
-    }, [tickInterval, dimensions])
+    }, [dimensions, tickInterval])
     return <div>
-        <Matrix matrix={numbers}/>
+        <Matrix matrix={numbers} />
     </div>
 }
