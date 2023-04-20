@@ -26,7 +26,7 @@ export const NavigatorDesktop: React.FC<Props> = ({subnav, routes}) => {
   }
  return <Box sx={{marginTop: "10vh"}}>
     <AppBar sx={{backgroundColor: "lightgray"}}>
-        <Tabs value={value} onChange={handleChange}>
+        <Tabs value={value > routes.length ? 0 : value} onChange={handleChange}>
             {getTabs()}
         </Tabs>
     </AppBar>
