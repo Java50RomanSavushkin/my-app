@@ -1,3 +1,4 @@
+import { Observable } from "rxjs";
 import { CategoryType } from "../model/CategoryType";
 import { ProductType } from "../model/ProductType";
 
@@ -7,5 +8,6 @@ export default interface ProductsService {
     removeProduct(id: string): Promise<void>;
     removeCategory(category: string): Promise<void>;
     isCategoryExist(category: string): Promise<boolean>;
-    setProducts(): Promise<number>
+    setProducts(): Promise<number>;
+    getProducts(): Observable<ProductType[]>;
 }

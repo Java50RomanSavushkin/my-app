@@ -1,46 +1,39 @@
+/**
+ * @jest-environment node
+ */
 import { productsService } from "./config/products-service-config"
 import productsConfig from "./config/products-config.json"
 import { getRandomElement } from "./util/random";
-test("setProducts test", () => {
+jest.setTimeout(300000)
+const categories: string[] = productsConfig.map(pc => pc.name.split("-")[0]);
+test("setProducts test", () => 
     productsService.setProducts().then(count => {
         expect(count).toEqual(productsConfig.length);
     })
-})
-test ("category bread exists", () => {
-    productsService.isCategoryExist("bread")
+)
+test ("random category exists", ()=> {
+    const category = getRandomElement(categories);
+    return productsService.isCategoryExist(category)
     .then(res => expect(res).toBeTruthy());
 })
-test ("category kukureku doesn't exist", () => {
+test ("category kukureku doesn't exist", () => 
     productsService.isCategoryExist("kukureku")
-    .then(res => expect(res).toBeFalsy());
-})
-
-test("random category exists",  () => {
-  // random category
-  const randomCategory = getRandomElement(productsConfig.map(product => product.name.split("-")[0]));
-
-  // check if the random category exists
-  const categoryExists =  productsService.isCategoryExist(randomCategory);
-
-  expect(categoryExists).toBeTruthy();
-});
-
-test("removed category doesn't exist in the database",  () => {
-    const categoryToRemove = "bread";
+    .then(res => expect(res)).then(res=>res.toBeFalsy())
+)
+test ("all categories exist test",  () => 
+    Promise.all(categories.map(c => productsService.isCategoryExist(c)))
+    .then(res => expect(res.every(v => v))).then(res=>res.toBeTruthy())
     
-    // remove the category
-     productsService.removeCategory(categoryToRemove);
-  
-    // check if the category exists
-    const categoryExists =  productsService.isCategoryExist(categoryToRemove);
-  
-    // expect the category to not exist in the database
-    expect(categoryExists).toBeFalsy();
-  });
-  
-
-
-
-
-
-
+)
+test ("remove category test", () => 
+    productsService.removeCategory(categories[0])
+    .then(() =>productsService.isCategoryExist(categories[0])
+    .then(res => expect(res).toBeFalsy()) )
+    
+)
+test ("add category test", () => 
+    productsService.addCategory({name: categories[0]})
+    .then(() =>productsService.isCategoryExist(categories[0])
+    .then(res => expect(res).toBeTruthy()) )
+    
+)

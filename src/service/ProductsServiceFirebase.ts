@@ -3,18 +3,23 @@ import { ProductType } from "../model/ProductType";
 import ProductsService from "./ProductsService";
 import productsConfig from "../config/products-config.json"
 import { firebaseApp } from "../config/firebase-config";
-import {getFirestore, collection, getDoc, deleteDoc, setDoc, getCountFromServer, doc}
+import {collectionData} from "rxfire/firestore";
+import {getFirestore, collection, getDocs, getDoc, deleteDoc, setDoc, getCountFromServer, doc}
  from "firebase/firestore";
 import { getRandomNumber } from "../util/random";
+import { Observable } from "rxjs";
 export const PRODUCTS_COLLECTION = "products";
 export const CATEGORIES_COLLECTION = "categories";
 export class ProductsServiceFirebase implements ProductsService {
     productsCollection = collection(getFirestore(firebaseApp), PRODUCTS_COLLECTION);
     categoriesCollection = collection(getFirestore(firebaseApp), CATEGORIES_COLLECTION);
     async addProduct(product: ProductType): Promise<void> {
-        product.id = getRandomNumber(100000, 999999).toString();
+       if(!product.id) {
+            product.id = getRandomNumber(100000, 999999).toString();
+       } 
         await setDoc(doc(this.productsCollection, product.id), product);
     }
+    
     async addCategory(category: CategoryType): Promise<void> {
         await setDoc(doc(this.categoriesCollection, category.name), category);
     }
@@ -49,6 +54,9 @@ export class ProductsServiceFirebase implements ProductsService {
             console.log(`created ${count} products`)
         }
         return count;
+    }
+    getProducts(): Observable<ProductType[]> {
+        return collectionData(this.productsCollection) as Observable<ProductType[]>
     }
 
 }
