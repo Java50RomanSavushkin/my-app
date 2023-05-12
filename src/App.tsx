@@ -22,52 +22,80 @@ import { productsActions } from './redux/productsSlice';
 import { Subscription } from 'rxjs';
 import { ordersService } from './config/orders-service-config';
 import { shoppingActions } from './redux/shoppingSlice';
+import { CategoryType } from './model/CategoryType';
+import { categoriesActions } from './redux/categoriesSlice';
+import { ordersActions } from './redux/ordersSlice';
 
 function App() {
-     const authUser = useSelector<any, string>(state=>state.auth.authUser);
-const [routesState, setRoutes] = useState(getRoutes());
-const dispatch = useDispatch();
-function getRoutes(): RouteType[] {
-     const routesRes = routes.filter(routePredicate);
-     const logoutRoute = routes.find(route => route.path === '/logout');
-     if (logoutRoute) {
-          logoutRoute.label = authUser;
-     }
-     return routesRes;
-}
-function routePredicate(route: RouteType): boolean | undefined {
-     return route.always ||( route.authenticated && !!authUser )
-      || (route.admin && authUser.includes('admin')) ||
-       (route.no_authenticated && !authUser)  || (route.client && authUser != '' && !authUser.includes("admin"))
-}
-useEffect(() => {
-     setRoutes(getRoutes());
-}, [authUser]);
-useEffect (() => {
-     const subscription = productsService.getProducts()
-     .subscribe({
-          next: (products: ProductType[]) => {
-               console.log(products)
-               dispatch(productsActions.setProducts(products))
+     const authUser = useSelector<any, string>(state => state.auth.authUser);
+     const [routesState, setRoutes] = useState(getRoutes());
+     const dispatch = useDispatch();
+     function getRoutes(): RouteType[] {
+          const routesRes = routes.filter(routePredicate);
+          const logoutRoute = routes.find(route => route.path === '/logout');
+          if (logoutRoute) {
+               logoutRoute.label = authUser;
           }
-     })
-     return () => subscription.unsubscribe()
-}, []);
-useEffect(() => {
-     let subscription: Subscription;
-     if (authUser != '' && !authUser.includes("admin")) {
-          subscription = ordersService.getShoppingCart(authUser).subscribe ({
-               next: (shopping) => dispatch(shoppingActions.setShopping(shopping))
-          })
-     } else {
-          dispatch(shoppingActions.resetShopping());
+          return routesRes;
      }
-     return () => {
-          if (subscription) {
+     function routePredicate(route: RouteType): boolean | undefined {
+          return route.always || (route.authenticated && !!authUser)
+               || (route.admin && authUser.includes('admin')) ||
+               (route.no_authenticated && !authUser) || (route.client && authUser != '' && !authUser.includes("admin"))
+     }
+     useEffect(() => {
+          setRoutes(getRoutes());
+     }, [authUser]);
+     useEffect(() => {
+          const subscription = productsService.getProducts()
+               .subscribe({
+                    next: (products: ProductType[]) => {
+                         console.log(products)
+                         dispatch(productsActions.setProducts(products))
+                    }
+               })
+          return () => subscription.unsubscribe()
+     }, []);
+     useEffect(() => {
+          let subscription: Subscription;
+          if (authUser != '' && !authUser.includes("admin")) {
+               subscription = ordersService.getShoppingCart(authUser).subscribe({
+                    next: (shopping) => dispatch(shoppingActions.setShopping(shopping))
+               })
+          } else {
+               dispatch(shoppingActions.resetShopping());
+          }
+          return () => {
+               if (subscription) {
+                    subscription.unsubscribe();
+               }
+          }
+     }, [authUser]);
+     useEffect(() => {
+          const subscription = productsService.getCategories().subscribe({
+               next: (categories: CategoryType[]) => { 
+                    const categoryNames: string[] = categories.map(c => c.name);
+                    dispatch(categoriesActions.setCategories(categoryNames));
+               }
+          })
+          return () => {
                subscription.unsubscribe();
           }
-     }
-}, [authUser])
+     }, [])
+     useEffect(() => {
+          let subscription: Subscription;
+          if (authUser) {
+               subscription = authUser.includes('admin') ? ordersService.getAllOrders()
+               .subscribe({
+                    next: (orders) => dispatch(ordersActions.setOrders(orders))
+               }) : ordersService.getCustomerOrders(authUser)
+               .subscribe({
+                    next: (orders) => dispatch(ordersActions.setOrders(orders))
+               })
+          }
+          return () => subscription && subscription.unsubscribe();
+     }, [authUser])
+
 
      return <BrowserRouter>
           <Routes>
@@ -76,11 +104,11 @@ useEffect(() => {
                     <Route path='customers' element={<Customers />} />
                     <Route path='orders' element={<Orders />} />
                     <Route path='shoppingcart' element={<ShoppingCart />} />
-                    <Route path='products' element={<Products/>} />
-                    <Route path='login' element={<Login></Login>}/>
-                    <Route path='logout' element={<Logout></Logout>}/>
-                    <Route path='/*' element={<NotFound/>}/>
-              
+                    <Route path='products' element={<Products />} />
+                    <Route path='login' element={<Login></Login>} />
+                    <Route path='logout' element={<Logout></Logout>} />
+                    <Route path='/*' element={<NotFound />} />
+
                </Route>
           </Routes>
      </BrowserRouter>

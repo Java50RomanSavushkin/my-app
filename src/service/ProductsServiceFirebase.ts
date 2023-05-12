@@ -11,6 +11,9 @@ import { Observable } from "rxjs";
 export const PRODUCTS_COLLECTION = "products";
 export const CATEGORIES_COLLECTION = "categories";
 export class ProductsServiceFirebase implements ProductsService {
+    getCategories(): Observable<CategoryType[]> {
+        return collectionData(this.categoriesCollection) as Observable<CategoryType[]>
+    }
     productsCollection = collection(getFirestore(firebaseApp), PRODUCTS_COLLECTION);
     categoriesCollection = collection(getFirestore(firebaseApp), CATEGORIES_COLLECTION);
     async addProduct(product: ProductType): Promise<void> {
@@ -39,7 +42,7 @@ export class ProductsServiceFirebase implements ProductsService {
         if (count == 0) {
             const products: ProductType[] = productsConfig.map(pc => {
                 const category = pc.name.split("-")[0];
-                return {category,cost: pc.cost,image: pc.name + ".jpg",
+                return {category,cost: pc.cost,image: "images/" + pc.name + ".jpg",
                 title: pc.name,unit: pc.unit};
             })
             for (let i = 0; i < products.length; i++) {

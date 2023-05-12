@@ -31,7 +31,7 @@ export const ProductsClient: React.FC = () => {
     function getProductCards(): ReactNode {
         return products.map((p, index) => <Grid item xs={8} sm={5} md={3} key={index}>
             <Card>
-                <CardMedia sx={{ height: 140 }} image={p.image.startsWith("http") || p.image.length > 40? p.image : `images/${p.image}`} />
+                <CardMedia sx={{ height: 140 }} image={p.image} />
                 <CardContent sx={{
                     textAlign: "center",
                     backgroundColor: "aliceblue"
