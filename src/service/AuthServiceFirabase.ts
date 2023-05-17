@@ -6,7 +6,7 @@ import {getAuth, signInWithEmailAndPassword, signOut, signInWithPopup,
 export default class AuthServiceFirebase implements AuthService {
     auth = getAuth(firebaseApp);
     async login(loginData: LoginData): Promise<string> {
-        return loginData.email == "GOOGLE" ? this.signInGoogle() :
+        return loginData.email === "GOOGLE" ? this.signInGoogle() :
          this.signPassword(loginData)
     }
     private async signPassword(loginData: LoginData): Promise<string> {

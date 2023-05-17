@@ -6,6 +6,7 @@ import { DataGrid, GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import { LocalShipping, Visibility } from "@mui/icons-material";
 import { ordersService } from "../../config/orders-service-config";
 import { OrderContent } from "../OrderContent";
+import { ConfirmationDialog } from "../ConfirmationDialog";
 function checkDateFormat(date: string): boolean {
     const dateParts = date.split("-");
     let res: boolean = false;
@@ -19,21 +20,43 @@ export const Orders: React.FC = () => {
     const [openAlert, setOpenAlert] = useState(false);
     const [openContent, setOpenContent] = useState(false);
     const orderId = useRef('');
-    const alertMessage = useRef('')
+    const [openConfirmation, setOpenConfirmation] = useState<boolean>(false);
+    const alertMessage = useRef<string>('');
+    const title = useRef<string>('');
+    const content = useRef<string>('');
+    const deliveryDate = useRef<string>('');
     const orders = useSelector<any, OrderType[]>(state => state.ordersState.orders);
     const authUser = useSelector<any, string>(state => state.auth.authUser);
     const tableData = useMemo(() => getTableData(), [orders]);
-    const columns: GridColDef[] = useMemo(() => getColumns(), [authUser])
+    const columns: GridColDef[] = useMemo(() => getColumns(), [authUser, orders]);
+    function actualUpdate(isAgree: boolean) {
+        if(isAgree) {
+            delivery(orderId.current, deliveryDate.current);
+        }
+        setOpenConfirmation(false)
+    }
     function getTableData(): {
         id: string, email: string, productsAmount: number,
         cost: number, orderDate: string, deliveryDate: string
     }[] {
         return orders.map(o => ({
             id: o.id, email: o.email,
-            productsAmount: o.shopping.length,
+            productsAmount: o.shopping.length,  
             cost: o.shopping.reduce((res, cur) => res + cur.cost * cur.count, 0),
             orderDate: o.orderDate, deliveryDate: o.deliveryDate
-        }));
+        })).sort((r1, r2) => {
+            let res = 0;
+            if(!r1.deliveryDate && r2.deliveryDate ) {
+                res = -1;
+            } else if (r1.deliveryDate && !r2.deliveryDate) {
+                res = 1;
+            } else if(!r1.deliveryDate && !r2.deliveryDate) {
+                res = r1.orderDate.localeCompare(r2.orderDate);
+            } else {
+                res = r2.deliveryDate.localeCompare(r1.deliveryDate);
+            }
+            return res;
+        });
     }
     function getColumns(): GridColDef[] {
         const commonColumns: GridColDef[] = [
@@ -46,10 +69,10 @@ export const Orders: React.FC = () => {
                 field: 'cost', headerName: 'Cost', flex: 0.4, type: "number",
                 headerAlign: 'center', align: 'center'
             },
-            { field: 'orderDate', headerName: 'Order Date', flex: 0.5 },
+            { field: 'orderDate', headerName: 'Order Date', flex: 0.5,sortable: false },
             {
                 field: 'deliveryDate', headerName: 'Delivery Date', flex: 0.5,
-                editable: authUser.includes('admin')
+                editable: authUser.includes('admin'), sortable: false
             },
             {
                 field: 'actions', type: 'actions', getActions: params => {
@@ -62,7 +85,7 @@ export const Orders: React.FC = () => {
                     if (authUser.includes("admin")) {
                         res.push(<GridActionsCellItem label="delivery"
                          icon={<LocalShipping />}
-                        disabled={params.row.deliveryDate}
+                        disabled={!!params.row.deliveryDate}
                            onClick={async () => await delivery(params.id as string,
                                new Date().toISOString().substring(0, 10))}/>)
    
@@ -72,22 +95,26 @@ export const Orders: React.FC = () => {
             }
 
         ];
-        const adminColumns: GridColDef[] = [
-            { field: 'email', headerName: 'Customer', flex: 0.8 },
-            
-        ]
-        return authUser.includes('admin') ? commonColumns.concat(adminColumns) : commonColumns
+        
+        if(authUser.includes('admin')) {
+            commonColumns.splice(1, 0, { field: 'email', headerName: 'Customer', flex: 0.8 })
+        }
+        
+        return  commonColumns;
     }
     async function delivery(id: string, date: string) {
         const order = { ...orders.find(o => o.id == id)!, deliveryDate: date };
-        await ordersService.updateOrder(order!)
+        if(!!order.id) {
+               await ordersService.updateOrder(order!)
+        }
+     
     }
     function updateError(error: any) {
 
         alertMessage.current = JSON.stringify(error);
         setOpenAlert(true)
     }
-    async function updateDeliveryDate(newRow: any) {
+    async function updateDeliveryDate(newRow: any, oldRow: any) {
         const newDeliveryDate = newRow.deliveryDate;
         const orderDate = newRow.orderDate;
 
@@ -104,8 +131,18 @@ export const Orders: React.FC = () => {
             
 
         } 
-        await delivery(newRow.id, newDeliveryDate);
-        return newRow;
+        orderId.current = newRow.id;
+        deliveryDate.current = newDeliveryDate;
+        if(!newDeliveryDate) {
+            title.current = 'Canceling delivery?'
+            content.current = `You are going to cancel delivery of the order ${newRow.id}`
+        } else {
+            title.current = 'Updating delivery date?'
+            content.current = `You are going to update delivery date of the order ${newRow.id}
+            from ${oldRow.deliveryDate} to ${newDeliveryDate}`
+        }
+        setOpenConfirmation(true);
+        return oldRow;
     }
     return <Box sx={{
         display: "flex", flexDirection: "column", height: "80vh",
@@ -121,7 +158,12 @@ export const Orders: React.FC = () => {
             </Alert>
         </Snackbar>
         <Modal open={openContent} onClose={() => setOpenContent(false)}>
-            <OrderContent orderId={orderId.current}/>
+            <Box>
+                 <OrderContent orderId={orderId.current}/>
+            </Box>
+           
         </Modal>
+        <ConfirmationDialog open={openConfirmation} onCloseFn={actualUpdate}
+            title={title.current} content={content.current} />
     </Box>
 }

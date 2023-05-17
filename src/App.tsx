@@ -10,7 +10,7 @@ import { Orders } from './components/pages/Orders';
 import { Products } from './components/pages/Products';
 import { ShoppingCart } from './components/pages/ShoppingCart';
 import { routes } from './config/layout-config'
-
+import { Navigator } from './components/navigators/Navigator';
 import { NavigatorDesktop } from './components/navigators/NavigatorDesktop';
 import { useSelector, useDispatch } from 'react-redux';
 import { RouteType } from './model/RouteType';
@@ -99,7 +99,7 @@ function App() {
 
      return <BrowserRouter>
           <Routes>
-               <Route path='/' element={<NavigatorDesktop routes={routesState} />}>
+               <Route path='/' element={<Navigator routes={routesState} />}>
                     <Route index element={<Home />} />
                     <Route path='customers' element={<Customers />} />
                     <Route path='orders' element={<Orders />} />

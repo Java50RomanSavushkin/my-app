@@ -39,7 +39,7 @@ export class ProductsServiceFirebase implements ProductsService {
         const collectionData = (await getCountFromServer(this.productsCollection)).data();
         let count: number = collectionData.count;
         console.log(`Collection ${PRODUCTS_COLLECTION} contains ${count} products`)
-        if (count == 0) {
+        if (count === 0) {
             const products: ProductType[] = productsConfig.map(pc => {
                 const category = pc.name.split("-")[0];
                 return {category,cost: pc.cost,image: "images/" + pc.name + ".jpg",

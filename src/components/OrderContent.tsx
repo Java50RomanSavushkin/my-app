@@ -28,7 +28,7 @@ const columns: GridColDef[] = [
         },
         { field: 'unit', headerName: 'Unit', flex: 0.3 },
         { field: 'cost', headerName: 'Cost(ILS)', flex: 0.3, type: 'number' },
-        { field: 'count', headerName: 'Count', flex: 0.2, editable: true, type: 'number'  },
+        { field: 'count', headerName: 'Count', flex: 0.2, editable: false, type: 'number'  },
         { field: 'price', headerName: 'Price', flex: 0.3, type: 'number'  }
 ]
 export const OrderContent: React.FC<{orderId: string}> = ({orderId}) => {
@@ -36,7 +36,11 @@ export const OrderContent: React.FC<{orderId: string}> = ({orderId}) => {
     const order: OrderType = useMemo(()=>getOrder(), [orderId]);
     const rows = useMemo(()=>getTableData(), [order]);
     function getTableData(): ShoppingDataType[] {
-        return order.shopping
+        let res: ShoppingDataType[] = [];
+        if(order.shopping){
+            res = order.shopping;
+        }
+        return  res
     }
     function getOrder(): OrderType {
         const res: OrderType = orders.find(o => o.id == orderId)!;
